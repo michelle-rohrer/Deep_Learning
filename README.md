@@ -18,10 +18,12 @@ project/
 ├── doc/
 │   └── data_load.py
 ├── src/
+│   └── evaluation.py
+│   └── model.py
 │   └── plots.py
 │   └── test_train.py
-│   └── model.py
 ├── main.ipynb
+├── traiining.ipynb
 ├── environment.yml
 ├── requirements.txt
 ├── .env
