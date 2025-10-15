@@ -136,3 +136,37 @@ def plot_sample_images(dataset, class_to_idx=None, figsize=(12, 8), rows=2, cols
     
     plt.tight_layout()
     return fig
+
+######################
+# Lernkurven plotten #
+######################
+
+def plot_training_curves(train_losses, val_losses, train_accs, val_accs, title="Training Curves"):
+    """
+    Plottet die Lernkurven für Loss und Accuracy.
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+    
+    epochs = range(1, len(train_losses) + 1)
+    
+    # Loss Plot
+    ax1.plot(epochs, train_losses, 'b-', label='Training Loss')
+    ax1.plot(epochs, val_losses, 'r-', label='Validation Loss')
+    ax1.set_title('Training and Validation Loss')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Loss')
+    ax1.legend()
+    ax1.grid(True)
+    
+    # Accuracy Plot
+    ax2.plot(epochs, train_accs, 'b-', label='Training Accuracy')
+    ax2.plot(epochs, val_accs, 'r-', label='Validation Accuracy')
+    ax2.set_title('Training and Validation Accuracy')
+    ax2.set_xlabel('Epoch')
+    ax2.set_ylabel('Accuracy (%)')
+    ax2.legend()
+    ax2.grid(True)
+    
+    plt.suptitle(title)
+    plt.tight_layout()
+    plt.show()

@@ -1,0 +1,28 @@
+{
+  "os": "macOS-15.4.1-x86_64-i386-64bit",
+  "python": "CPython 3.12.7",
+  "startedAt": "2025-10-15T12:00:29.818821Z",
+  "program": "/Users/husazwerg/code/gitlab.fhnw.ch/michelle.rohrer/Deep_Learning/main.ipynb",
+  "codePath": "main.ipynb",
+  "codePathLocal": "main.ipynb",
+  "git": {
+    "remote": "https://github.com/michelle-rohrer/Deep_Learning.git",
+    "commit": "bbe0c6b06b2c4df99bdb24696e331fa010acc1d6"
+  },
+  "email": "michelle.rohrer18@gmail.com",
+  "root": "/Users/husazwerg/code/gitlab.fhnw.ch/michelle.rohrer/Deep_Learning",
+  "host": "MacBook",
+  "executable": "/Users/husazwerg/code/gitlab.fhnw.ch/michelle.rohrer/Deep_Learning/.venv/bin/python",
+  "cpu_count": 4,
+  "cpu_count_logical": 8,
+  "disk": {
+    "/": {
+      "total": "121018208256",
+      "used": "107613229056"
+    }
+  },
+  "memory": {
+    "total": "8589934592"
+  },
+  "writerId": "t4mtec8vnuqoyqzj4caa9ubfj4xcrfv7"
+}
