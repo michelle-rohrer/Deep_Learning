@@ -1,0 +1,28 @@
+{
+  "os": "Windows-10-10.0.26200-SP0",
+  "python": "CPython 3.11.13",
+  "startedAt": "2025-10-16T12:47:48.195029Z",
+  "program": "c:\\Users\\MichelleRohrer\\Desktop\\Uni\\Deep_Learning\\training.ipynb",
+  "codePath": "training.ipynb",
+  "codePathLocal": "training.ipynb",
+  "git": {
+    "remote": "https://github.com/michelle-rohrer/Deep_Learning.git",
+    "commit": "ebb316e1128f3b3da62819c91f4554bb0dd6a6b8"
+  },
+  "email": "michelle.rohrer18@gmail.com",
+  "root": "c:\\Users\\MichelleRohrer\\Desktop\\Uni\\Deep_Learning",
+  "host": "publicXdata-365",
+  "executable": "c:\\Users\\MichelleRohrer\\.conda\\envs\\del\\python.exe",
+  "cpu_count": 16,
+  "cpu_count_logical": 22,
+  "disk": {
+    "/": {
+      "total": "1021821579264",
+      "used": "185314009088"
+    }
+  },
+  "memory": {
+    "total": "68125036544"
+  },
+  "writerId": "biklgjyalk726ykckuxq7nrdrfuim64q"
+}

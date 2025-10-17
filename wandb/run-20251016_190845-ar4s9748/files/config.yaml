@@ -1,0 +1,65 @@
+_wandb:
+    value:
+        cli_version: 0.22.2
+        e:
+            aqxevfwjmkof82vwvoc3aefpr834e2g0:
+                codePath: training.ipynb
+                codePathLocal: training.ipynb
+                cpu_count: 16
+                cpu_count_logical: 22
+                disk:
+                    /:
+                        total: "1021821579264"
+                        used: "185939636224"
+                email: michelle.rohrer18@gmail.com
+                executable: c:\Users\MichelleRohrer\.conda\envs\del\python.exe
+                git:
+                    commit: ebb316e1128f3b3da62819c91f4554bb0dd6a6b8
+                    remote: https://github.com/michelle-rohrer/Deep_Learning.git
+                host: publicXdata-365
+                memory:
+                    total: "68125036544"
+                os: Windows-10-10.0.26200-SP0
+                program: c:\Users\MichelleRohrer\Desktop\Uni\Deep_Learning\training.ipynb
+                python: CPython 3.11.13
+                root: c:\Users\MichelleRohrer\Desktop\Uni\Deep_Learning
+                startedAt: "2025-10-16T17:08:45.128118Z"
+                writerId: aqxevfwjmkof82vwvoc3aefpr834e2g0
+        m: []
+        python_version: 3.11.13
+        t:
+            "1":
+                - 1
+                - 5
+                - 41
+                - 53
+            "2":
+                - 1
+                - 5
+                - 41
+                - 53
+            "3":
+                - 2
+                - 13
+                - 16
+            "4": 3.11.13
+            "5": 0.22.2
+            "8":
+                - 1
+                - 3
+            "12": 0.22.2
+            "13": windows-amd64
+architecture:
+    value: BaselineCNN
+batch_size:
+    value: 64
+dataset:
+    value: FER-2013
+learning_rate:
+    value: 0.1
+momentum:
+    value: 0
+num_epochs:
+    value: 50
+optimizer:
+    value: SGD
