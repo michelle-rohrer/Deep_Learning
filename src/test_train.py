@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 import numpy as np
 from sklearn.model_selection import KFold
+from sklearn.metrics import f1_score
 from torch.utils.data import DataLoader
 import wandb
+import os
 
 from src.model import BaselineCNN
 
@@ -60,16 +62,34 @@ def overfitting_test_batch(model, device, train_loader, num_epochs=500):
 # Training des Modells #
 ########################
 
-def train_model(model, device, train_loader, val_loader, num_epochs=50, learning_rate=0.01, batch_size=64, use_wandb=False, run_name=None, early_stopping=True, patience=10, min_delta=0.001):
+def train_model(model, device, train_loader, val_loader, num_epochs=50, learning_rate=0.01, batch_size=64, use_wandb=False, run_name=None, early_stopping=True, patience=10, min_delta=0.001, save_path=None):
     """
     Training des Basismodells mit SGD (ohne Momentum), ohne Regularisierung, ohne Batchnorm.
     
+    Diese Funktion führt automatisch einen Overfitting-Test durch, wenn der train_loader nur einen Batch enthält.
+    Das Modell wird automatisch nach Epoche 60 gespeichert (falls num_epochs >= 60).
+    
+    **Overfitting-Test:**
+    Wenn train_loader nur 1 Batch enthält (len(train_loader) == 1), wird automatisch ein Overfitting-Test durchgeführt.
+    Dies testet, ob das Modell in der Lage ist, einen einzelnen Batch perfekt zu lernen.
+    Ein erfolgreicher Overfitting-Test zeigt, dass das Modell lernen kann (nicht auswendig lernt).
+    
+    **Automatisches Speichern:**
+    Wenn save_path angegeben ist und num_epochs >= 60, wird das Modell automatisch nach Epoche 60 gespeichert.
+    Dies dient als Referenzpunkt für konsistente Vergleiche.
+    
+    **Metriken:**
+    Die Funktion berechnet und gibt zurück:
+    - Loss (Training und Validation)
+    - Accuracy (Training und Validation)
+    - F1-Score (Training und Validation, weighted average)
+    
     Args:
-        model: Das zu trainierende Modell
+        model: Das zu trainierende Modell (wird direkt übergeben, nicht aus Code erstellt)
         device: CUDA oder CPU
-        train_loader: DataLoader für Training
+        train_loader: DataLoader für Training. Wenn nur 1 Batch, wird automatisch Overfitting-Test durchgeführt.
         val_loader: DataLoader für Validation
-        num_epochs: Anzahl Epochen
+        num_epochs: Anzahl Epochen (Standard: 50, empfohlen: 60 für Referenz)
         learning_rate: Lernrate für SGD
         batch_size: Batch-Größe
         use_wandb: Ob wandb logging aktiviert werden soll
@@ -77,9 +97,11 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
         early_stopping: Ob Early Stopping aktiviert werden soll
         patience: Anzahl Epochen ohne Verbesserung vor Stopp
         min_delta: Minimale Verbesserung um als besser zu gelten
+        save_path: Pfad zum Speichern des Modells nach Epoche 60 (optional)
     
     Returns:
-        train_losses, val_losses, train_accs, val_accs: Listen mit Metriken pro Epoche
+        tuple: (train_losses, val_losses, train_accs, val_accs, train_f1s, val_f1s)
+            Listen mit Metriken pro Epoche für alle 6 Metriken
     """
     
     # SGD Optimizer ohne Momentum
@@ -102,11 +124,22 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
             }
         )
     
+    # Overfitting-Test erkennen: Wenn train_loader nur 1 Batch hat
+    is_overfitting_test = len(train_loader) == 1
+    if is_overfitting_test:
+        print("=" * 60)
+        print("OVERFITTING-TEST MODUS: Train_loader enthält nur 1 Batch")
+        print("Das Modell wird auf einem einzelnen Batch trainiert, um zu testen,")
+        print("ob es in der Lage ist, die Daten perfekt zu lernen (Overfitting-Test).")
+        print("=" * 60)
+    
     # Listen für Metriken
     train_losses = []
     val_losses = []
     train_accs = []
     val_accs = []
+    train_f1s = []
+    val_f1s = []
     
     # Early Stopping Variablen
     best_val_loss = float('inf')
@@ -124,6 +157,8 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
         train_loss = 0.0
         train_correct = 0
         train_total = 0
+        train_all_preds = []
+        train_all_labels = []
         
         for batch_idx, (images, labels) in enumerate(train_loader):
             images, labels = images.to(device), labels.to(device)
@@ -142,12 +177,18 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
             _, predicted = torch.max(outputs.data, 1)
             train_total += labels.size(0)
             train_correct += (predicted == labels).sum().item()
+            
+            # Für F1-Score sammeln
+            train_all_preds.extend(predicted.cpu().numpy())
+            train_all_labels.extend(labels.cpu().numpy())
         
         # === VALIDATION ===
         model.eval()
         val_loss = 0.0
         val_correct = 0
         val_total = 0
+        val_all_preds = []
+        val_all_labels = []
         
         with torch.no_grad():
             for images, labels in val_loader:
@@ -159,6 +200,10 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
                 _, predicted = torch.max(outputs.data, 1)
                 val_total += labels.size(0)
                 val_correct += (predicted == labels).sum().item()
+                
+                # Für F1-Score sammeln
+                val_all_preds.extend(predicted.cpu().numpy())
+                val_all_labels.extend(labels.cpu().numpy())
         
         # Metriken berechnen
         avg_train_loss = train_loss / len(train_loader)
@@ -166,11 +211,17 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
         train_acc = 100 * train_correct / train_total
         val_acc = 100 * val_correct / val_total
         
+        # F1-Score berechnen
+        train_f1 = f1_score(train_all_labels, train_all_preds, average='weighted')
+        val_f1 = f1_score(val_all_labels, val_all_preds, average='weighted')
+        
         # Speichern
         train_losses.append(avg_train_loss)
         val_losses.append(avg_val_loss)
         train_accs.append(train_acc)
         val_accs.append(val_acc)
+        train_f1s.append(train_f1)
+        val_f1s.append(val_f1)
         
         # Early Stopping Check
         if early_stopping:
@@ -183,6 +234,12 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
             else:
                 patience_counter += 1
         
+        # Automatisches Speichern nach Epoche 60
+        if (epoch + 1) == 60 and save_path:
+            os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+            torch.save(model.state_dict(), save_path)
+            print(f"\nModell nach Epoche 60 gespeichert: {save_path}")
+        
         # wandb logging
         if use_wandb:
             wandb.log({
@@ -191,6 +248,8 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
                 "val_loss": avg_val_loss,
                 "train_acc": train_acc,
                 "val_acc": val_acc,
+                "train_f1": train_f1,
+                "val_f1": val_f1,
                 "best_val_loss": best_val_loss,
                 "patience_counter": patience_counter
             })
@@ -212,25 +271,47 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
     if use_wandb:
         wandb.finish()
     
-    return train_losses, val_losses, train_accs, val_accs
+    return train_losses, val_losses, train_accs, val_accs, train_f1s, val_f1s
 
 #########################
 # Hyperparameter-Tuning #
 #########################
 
-def hyperparameter_tuning_with_wandb(train_dataset, val_dataset, learning_rates, batch_sizes, num_epochs=30):
+def hyperparameter_tuning_with_wandb(train_dataset, val_dataset, learning_rates, batch_sizes, model_class, num_epochs=60, img_size=48, num_classes=7):
     """
     Hyperparameter-Tuning mit wandb Integration für besseres Experiment-Tracking.
+    
+    **Was wird gemacht:**
+    - Testet alle Kombinationen von Lernraten und Batch-Größen
+    - Erstellt für jede Konfiguration ein neues Modell aus der übergebenen Modell-Klasse
+    - Trainiert jedes Modell mit Early Stopping
+    - Speichert Trainingskurven (Loss, Accuracy, F1-Score) für Training und Validation
+    - Findet die beste Performance pro Konfiguration
+    
+    **Ergebnisse:**
+    Das zurückgegebene Dictionary enthält für jede Konfiguration:
+    - Trainingskurven (train_losses, val_losses, train_accs, val_accs, train_f1s, val_f1s)
+    - Finale Metriken (nach allen Epochen)
+    - Beste Metriken (beste Validation Accuracy während Training)
+    - Anzahl tatsächlich trainierter Epochen
+    
+    **Hinweis zu kleinen Datasets:**
+    Bei kleinen Datasets kann das Training schneller konvergieren. Early Stopping passt sich automatisch an.
     
     Args:
         train_dataset: Trainingsdatensatz
         val_dataset: Validierungsdatensatz
         learning_rates: Liste der zu testenden Lernraten
         batch_sizes: Liste der zu testenden Batch-Größen
-        num_epochs: Anzahl Epochen pro Konfiguration
+        model_class: Die Modell-Klasse (z.B. BaselineCNN), die instanziiert werden soll.
+                     Wird als Parameter übergeben, nicht hardcodiert.
+        num_epochs: Anzahl Epochen pro Konfiguration (Standard: 60 für Referenz)
+        img_size: Bildgröße für Modell-Initialisierung
+        num_classes: Anzahl Klassen für Modell-Initialisierung
     
     Returns:
-        dict: Ergebnisse aller Konfigurationen
+        dict: Ergebnisse aller Konfigurationen mit Trainingskurven und Metriken.
+              Key-Format: "LR_{lr}_Batch_{batch_size}"
     """
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -245,25 +326,31 @@ def hyperparameter_tuning_with_wandb(train_dataset, val_dataset, learning_rates,
             print(f"\n--- {run_name} ---")
             
             # Neue DataLoader mit aktueller Batch-Größe
+            # Optimale num_workers für Multi-Core (M5): Anzahl Cores - 1
+            import multiprocessing
+            optimal_workers = max(1, multiprocessing.cpu_count() - 1)
+            
             train_loader = DataLoader(
                 train_dataset,
                 batch_size=batch_size,
                 shuffle=True,
-                num_workers=2
+                num_workers=optimal_workers,
+                pin_memory=True  # Beschleunigt Transfer zu GPU/MPS
             )
             
             val_loader = DataLoader(
                 val_dataset,
                 batch_size=batch_size,
                 shuffle=False,
-                num_workers=2
+                num_workers=optimal_workers,
+                pin_memory=True
             )
             
-            # Neues Modell für jeden Test
-            model = BaselineCNN(img_size=48, num_classes=7).to(device)
+            # Neues Modell für jeden Test - Modell-Klasse wird übergeben
+            model = model_class(img_size=img_size, num_classes=num_classes).to(device)
             
             # Training mit wandb und Early Stopping
-            train_losses, val_losses, train_accs, val_accs = train_model(
+            train_losses, val_losses, train_accs, val_accs, train_f1s, val_f1s = train_model(
                 model=model,
                 device=device,
                 train_loader=train_loader,
@@ -278,21 +365,37 @@ def hyperparameter_tuning_with_wandb(train_dataset, val_dataset, learning_rates,
                 min_delta=0.001
             )
             
+            # Beste Performance finden (höchste Validation Accuracy)
+            best_epoch_idx = np.argmax(val_accs)
+            best_val_acc = val_accs[best_epoch_idx]
+            best_val_f1 = val_f1s[best_epoch_idx]
+            
             # Ergebnisse speichern
             results[run_name] = {
                 'learning_rate': lr,
                 'batch_size': batch_size,
+                'num_epochs': len(train_accs),  # Tatsächliche Anzahl Epochen (kann durch Early Stopping reduziert sein)
                 'train_losses': train_losses,
                 'val_losses': val_losses,
                 'train_accs': train_accs,
                 'val_accs': val_accs,
+                'train_f1s': train_f1s,
+                'val_f1s': val_f1s,
                 'final_train_acc': train_accs[-1],
                 'final_val_acc': val_accs[-1],
                 'final_train_loss': train_losses[-1],
-                'final_val_loss': val_losses[-1]
+                'final_val_loss': val_losses[-1],
+                'final_train_f1': train_f1s[-1],
+                'final_val_f1': val_f1s[-1],
+                'best_epoch': best_epoch_idx + 1,
+                'best_val_acc': best_val_acc,
+                'best_val_f1': best_val_f1,
+                'best_train_acc': train_accs[best_epoch_idx],
+                'best_train_f1': train_f1s[best_epoch_idx]
             }
             
-            print(f"Finale Validation Accuracy: {val_accs[-1]:.2f}%")
+            print(f"Finale Validation Accuracy: {val_accs[-1]:.2f}% | F1-Score: {val_f1s[-1]:.4f}")
+            print(f"Beste Validation Accuracy: {best_val_acc:.2f}% (Epoche {best_epoch_idx + 1}) | F1-Score: {best_val_f1:.4f}")
             print(f"Finale Validation Loss: {val_losses[-1]:.4f}")
     
     return results

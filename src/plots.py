@@ -185,11 +185,23 @@ def plot_training_curves(train_losses, val_losses, train_accs, val_accs, title="
 def plot_hyperparameter_comparison(results, learning_rates, batch_sizes, save_path=None):
     """
     Erstellt einen Vergleichsplot für Hyperparameter-Tuning Ergebnisse.
+    Zeigt sowohl Trainings- als auch Validierungskurven für Accuracy.
+    
+    **Was wird geplottet:**
+    - 6 Subplots: 3 für verschiedene Lernraten, 3 für verschiedene Batch-Größen
+    - Für jede Konfiguration: Trainingskurve (gestrichelt) und Validierungskurve (durchgezogen)
+    - Ermöglicht visuellen Vergleich der Lernkurven über verschiedene Hyperparameter
+    
+    **Interpretation:**
+    - Große Lücke zwischen Train und Val: Overfitting
+    - Val-Kurve steigt kontinuierlich: Gutes Training
+    - Val-Kurve fällt nach Peak: Overfitting, Early Stopping wäre sinnvoll
     
     Parameters:
     -----------
     results : dict
         Dictionary mit Ergebnissen für jede Konfiguration (Key: "LR_{lr}_Batch_{batch_size}")
+        Erwartet: 'train_accs', 'val_accs' (optional: 'train_f1s', 'val_f1s')
     learning_rates : list
         Liste der getesteten Lernraten
     batch_sizes : list
@@ -202,10 +214,11 @@ def plot_hyperparameter_comparison(results, learning_rates, batch_sizes, save_pa
     fig : matplotlib.figure.Figure
         Die erstellte Figure
     """
+    # Größeres Layout für Train und Val Kurven
     fig, axes = plt.subplots(2, 3, figsize=(18, 12))
     axes = axes.flatten()
 
-    # Für jede Lernrate einen Subplot
+    # Für jede Lernrate einen Subplot (Validation Accuracy)
     for i, lr in enumerate(learning_rates):
         ax = axes[i]
         
@@ -215,18 +228,22 @@ def plot_hyperparameter_comparison(results, learning_rates, batch_sizes, save_pa
                 result = results[config_key]
                 
                 epochs = range(1, len(result['val_accs']) + 1)
+                # Train und Val Kurven
+                if 'train_accs' in result:
+                    ax.plot(epochs, result['train_accs'], 
+                           label=f'Batch {batch_size} (Train)', 
+                           linewidth=1.5, linestyle='--', alpha=0.7)
                 ax.plot(epochs, result['val_accs'], 
-                       label=f'Batch {batch_size}', 
-                       linewidth=2, marker='o', markersize=4)
+                       label=f'Batch {batch_size} (Val)', 
+                       linewidth=2, marker='o', markersize=3)
         
-        ax.set_title(f'Learning Rate = {lr}')
+        ax.set_title(f'Learning Rate = {lr} - Accuracy')
         ax.set_xlabel('Epoch')
-        ax.set_ylabel('Validation Accuracy (%)')
-        ax.set_ylim(0, 50)
-        ax.legend()
+        ax.set_ylabel('Accuracy (%)')
+        ax.legend(fontsize=8)
         ax.grid(True, alpha=0.3)
 
-    # Für jede Batch-Groesse einen Subplot
+    # Für jede Batch-Groesse einen Subplot (Validation Accuracy)
     for i, batch_size in enumerate(batch_sizes):
         ax = axes[i + 3]
         
@@ -236,26 +253,158 @@ def plot_hyperparameter_comparison(results, learning_rates, batch_sizes, save_pa
                 result = results[config_key]
                 
                 epochs = range(1, len(result['val_accs']) + 1)
+                # Train und Val Kurven
+                if 'train_accs' in result:
+                    ax.plot(epochs, result['train_accs'], 
+                           label=f'LR {lr} (Train)', 
+                           linewidth=1.5, linestyle='--', alpha=0.7)
                 ax.plot(epochs, result['val_accs'], 
-                       label=f'LR {lr}', 
-                       linewidth=2, marker='o', markersize=4)
+                       label=f'LR {lr} (Val)', 
+                       linewidth=2, marker='o', markersize=3)
         
-        ax.set_title(f'Batch Size = {batch_size}')
+        ax.set_title(f'Batch Size = {batch_size} - Accuracy')
         ax.set_xlabel('Epoch')
-        ax.set_ylabel('Validation Accuracy (%)')
-        ax.set_ylim(0, 50)
-        ax.legend()
+        ax.set_ylabel('Accuracy (%)')
+        ax.legend(fontsize=8)
         ax.grid(True, alpha=0.3)
 
-    plt.suptitle('Hyperparameter-Tuning: Lernkurven-Vergleich', fontsize=16)
+    plt.suptitle('Hyperparameter-Tuning: Lernkurven-Vergleich (Train & Validation Accuracy)', fontsize=16)
     plt.tight_layout()
     
     # Plot speichern falls Pfad angegeben
     if save_path:
         import os
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
         fig.savefig(save_path, dpi=300, bbox_inches='tight')
         print(f"Hyperparameter-Vergleichsplot gespeichert als '{save_path}'")
+    
+    plt.show()
+    return fig
+
+
+def plot_hyperparameter_performance_summary(results, learning_rates, batch_sizes, save_path=None):
+    """
+    Erstellt eine Übersicht der besten Performance pro Run mit Accuracy, F1-Score, Lernrate und Epochen.
+    
+    **Was wird geplottet:**
+    - 4 Subplots:
+      1. Beste Validation Accuracy pro Konfiguration (Balkendiagramm)
+      2. Beste Validation F1-Score pro Konfiguration (Balkendiagramm)
+      3. Scatter-Plot: Accuracy vs F1-Score (zeigt Korrelation)
+      4. Tabelle mit Top 5 Konfigurationen (Performance, LR, Batch, Epochen)
+    
+    **Verwendung:**
+    Diese Funktion zeigt die beste Performance jeder Konfiguration und ermöglicht einen
+    schnellen Überblick über die besten Hyperparameter-Kombinationen.
+    
+    Parameters:
+    -----------
+    results : dict
+        Dictionary mit Ergebnissen für jede Konfiguration
+        Erwartet: 'best_val_acc', 'best_val_f1', 'num_epochs' oder 'best_epoch'
+    learning_rates : list
+        Liste der getesteten Lernraten
+    batch_sizes : list
+        Liste der getesteten Batch-Groessen
+    save_path : str, optional
+        Pfad zum Speichern des Plots
+    
+    Returns:
+    --------
+    fig : matplotlib.figure.Figure
+        Die erstellte Figure
+    """
+    # Daten für Tabelle sammeln
+    summary_data = []
+    
+    for lr in learning_rates:
+        for batch_size in batch_sizes:
+            config_key = f"LR_{lr}_Batch_{batch_size}"
+            if config_key in results:
+                result = results[config_key]
+                summary_data.append({
+                    'LR': lr,
+                    'Batch': batch_size,
+                    'Best Val Acc': result.get('best_val_acc', result.get('final_val_acc', 0)),
+                    'Best Val F1': result.get('best_val_f1', result.get('final_val_f1', 0)),
+                    'Final Val Acc': result.get('final_val_acc', 0),
+                    'Final Val F1': result.get('final_val_f1', 0),
+                    'Epochs': result.get('num_epochs', result.get('best_epoch', len(result.get('val_accs', []))))
+                })
+    
+    # Sortieren nach bester Validation Accuracy
+    summary_data.sort(key=lambda x: x['Best Val Acc'], reverse=True)
+    
+    # Plot erstellen
+    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    
+    # 1. Beste Validation Accuracy pro Konfiguration
+    ax1 = axes[0, 0]
+    configs = [f"LR={d['LR']}\nBatch={d['Batch']}" for d in summary_data]
+    best_accs = [d['Best Val Acc'] for d in summary_data]
+    ax1.barh(range(len(configs)), best_accs)
+    ax1.set_yticks(range(len(configs)))
+    ax1.set_yticklabels(configs, fontsize=8)
+    ax1.set_xlabel('Best Validation Accuracy (%)')
+    ax1.set_title('Beste Validation Accuracy pro Konfiguration')
+    ax1.grid(True, alpha=0.3, axis='x')
+    
+    # 2. Beste Validation F1-Score pro Konfiguration
+    ax2 = axes[0, 1]
+    best_f1s = [d['Best Val F1'] for d in summary_data]
+    ax2.barh(range(len(configs)), best_f1s)
+    ax2.set_yticks(range(len(configs)))
+    ax2.set_yticklabels(configs, fontsize=8)
+    ax2.set_xlabel('Best Validation F1-Score')
+    ax2.set_title('Beste Validation F1-Score pro Konfiguration')
+    ax2.grid(True, alpha=0.3, axis='x')
+    
+    # 3. Scatter: Accuracy vs F1-Score
+    ax3 = axes[1, 0]
+    ax3.scatter(best_accs, best_f1s, s=100, alpha=0.6)
+    for i, d in enumerate(summary_data):
+        ax3.annotate(f"LR={d['LR']}, B={d['Batch']}", 
+                    (best_accs[i], best_f1s[i]),
+                    fontsize=7, alpha=0.7)
+    ax3.set_xlabel('Best Validation Accuracy (%)')
+    ax3.set_ylabel('Best Validation F1-Score')
+    ax3.set_title('Accuracy vs F1-Score')
+    ax3.grid(True, alpha=0.3)
+    
+    # 4. Tabelle mit Top-Performern
+    ax4 = axes[1, 1]
+    ax4.axis('tight')
+    ax4.axis('off')
+    
+    # Top 5 Konfigurationen
+    top5 = summary_data[:5]
+    table_data = []
+    for d in top5:
+        table_data.append([
+            f"LR={d['LR']}, Batch={d['Batch']}",
+            f"{d['Best Val Acc']:.2f}%",
+            f"{d['Best Val F1']:.4f}",
+            f"{d['Epochs']}"
+        ])
+    
+    table = ax4.table(cellText=table_data,
+                     colLabels=['Konfiguration', 'Best Val Acc', 'Best Val F1', 'Epochen'],
+                     cellLoc='center',
+                     loc='center')
+    table.auto_set_font_size(False)
+    table.set_fontsize(9)
+    table.scale(1, 2)
+    ax4.set_title('Top 5 Konfigurationen', fontsize=12, pad=20)
+    
+    plt.suptitle('Hyperparameter-Tuning: Performance-Übersicht', fontsize=16)
+    plt.tight_layout()
+    
+    # Plot speichern falls Pfad angegeben
+    if save_path:
+        import os
+        os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
+        fig.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Performance-Übersicht gespeichert als '{save_path}'")
     
     plt.show()
     return fig
