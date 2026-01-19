@@ -159,8 +159,11 @@ def cross_validation_training(train_dataset, model_class, num_folds=5, num_epoch
     
     from sklearn.model_selection import KFold
     from torch.utils.data import Subset
+    from setup_config import get_device, get_optimal_num_workers, should_use_pin_memory
     
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = get_device()  # Verwendet MPS > CUDA > CPU
+    optimal_workers = get_optimal_num_workers()
+    use_pin_memory = should_use_pin_memory()
     kfold = KFold(n_splits=num_folds, shuffle=True, random_state=42)
     
     cv_results = {
@@ -184,8 +187,20 @@ def cross_validation_training(train_dataset, model_class, num_folds=5, num_epoch
         train_subset = Subset(train_dataset, train_idx)
         val_subset = Subset(train_dataset, val_idx)
         
-        train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True)
-        val_loader = DataLoader(val_subset, batch_size=batch_size, shuffle=False)
+        train_loader = DataLoader(
+            train_subset, 
+            batch_size=batch_size, 
+            shuffle=True,
+            num_workers=optimal_workers,
+            pin_memory=use_pin_memory
+        )
+        val_loader = DataLoader(
+            val_subset, 
+            batch_size=batch_size, 
+            shuffle=False,
+            num_workers=optimal_workers,
+            pin_memory=use_pin_memory
+        )
         
         # Modell erstellen - Modell-Klasse wird übergeben
         model = model_class(img_size=img_size, num_classes=num_classes).to(device)

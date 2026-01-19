@@ -22,19 +22,31 @@ def get_optimal_num_workers():
 def get_device():
     """
     Gibt das optimale Device für Apple Silicon zurück.
-    Priorität: MPS (Metal) > CPU
+    Priorität: MPS (Metal) > CUDA > CPU
     
     Returns:
         torch.device: Das optimale Device
     """
     if torch.backends.mps.is_available():
         return torch.device("mps")
+    elif torch.cuda.is_available():
+        return torch.device("cuda")
     else:
         return torch.device("cpu")
 
+def should_use_pin_memory():
+    """
+    Bestimmt, ob pin_memory für DataLoader verwendet werden soll.
+    pin_memory ist nur für CUDA sinnvoll, nicht für MPS oder CPU.
+    
+    Returns:
+        bool: True nur wenn CUDA verfügbar ist, sonst False
+    """
+    return torch.cuda.is_available()
+
 def print_system_info():
     """
-    Gibt System-Informationen aus (nützlich für Debugging).
+    Gibt System-Informationen aus.
     """
     print("=" * 60)
     print("System-Informationen für Multi-Core Optimierung")

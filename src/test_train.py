@@ -6,6 +6,7 @@ from sklearn.metrics import f1_score
 from torch.utils.data import DataLoader
 import wandb
 import os
+import gc
 
 from src.model import BaselineCNN
 
@@ -327,15 +328,16 @@ def hyperparameter_tuning_with_wandb(train_dataset, val_dataset, learning_rates,
             
             # Neue DataLoader mit aktueller Batch-Größe
             # Optimale num_workers für Multi-Core (M5): Anzahl Cores - 1
-            import multiprocessing
-            optimal_workers = max(1, multiprocessing.cpu_count() - 1)
+            from setup_config import get_optimal_num_workers, should_use_pin_memory
+            optimal_workers = get_optimal_num_workers()
+            use_pin_memory = should_use_pin_memory()  # Nur für CUDA, nicht für MPS
             
             train_loader = DataLoader(
                 train_dataset,
                 batch_size=batch_size,
                 shuffle=True,
                 num_workers=optimal_workers,
-                pin_memory=True  # Beschleunigt Transfer zu GPU/MPS
+                pin_memory=use_pin_memory  # Nur bei CUDA aktivieren
             )
             
             val_loader = DataLoader(
@@ -343,7 +345,7 @@ def hyperparameter_tuning_with_wandb(train_dataset, val_dataset, learning_rates,
                 batch_size=batch_size,
                 shuffle=False,
                 num_workers=optimal_workers,
-                pin_memory=True
+                pin_memory=use_pin_memory
             )
             
             # Neues Modell für jeden Test - Modell-Klasse wird übergeben
@@ -397,5 +399,16 @@ def hyperparameter_tuning_with_wandb(train_dataset, val_dataset, learning_rates,
             print(f"Finale Validation Accuracy: {val_accs[-1]:.2f}% | F1-Score: {val_f1s[-1]:.4f}")
             print(f"Beste Validation Accuracy: {best_val_acc:.2f}% (Epoche {best_epoch_idx + 1}) | F1-Score: {best_val_f1:.4f}")
             print(f"Finale Validation Loss: {val_losses[-1]:.4f}")
+            
+            # Speicherbereinigung nach jeder Variante
+            del model
+            del train_loader
+            del val_loader
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            if torch.backends.mps.is_available():
+                torch.mps.empty_cache()
+            gc.collect()
+            print("Speicher nach Variante freigegeben")
     
     return results

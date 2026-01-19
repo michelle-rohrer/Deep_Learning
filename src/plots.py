@@ -519,3 +519,171 @@ def plot_confusion_matrix(confusion_matrix, class_names, title="Konfusionsmatrix
     
     plt.show()
     return fig
+
+##############################
+# Experiment Plot Functions  #
+##############################
+
+def plot_experiment_comparison(results_dict, metric='val_acc', title='Experiment Comparison'):
+    """
+    Plottet Vergleich mehrerer Experimente.
+    
+    Args:
+        results_dict: Dictionary mit Experiment-Ergebnissen
+                      Key: Experiment-Name, Value: results dict von run_hyperparameter_experiment
+        metric: Metrik zum Plotten ('val_acc', 'train_acc', 'val_loss', etc.)
+        title: Titel des Plots
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+    
+    # Linker Plot: Training Curves
+    ax1 = axes[0]
+    for exp_name, results in results_dict.items():
+        epochs = range(1, len(results[metric]) + 1)
+        ax1.plot(epochs, results[metric], label=exp_name, linewidth=2)
+    
+    ax1.set_xlabel('Epoche', fontsize=12)
+    ax1.set_ylabel(metric.replace('_', ' ').title(), fontsize=12)
+    ax1.set_title(f'{title} - Training Curves', fontsize=14, fontweight='bold')
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    
+    # Rechter Plot: Finale Metriken
+    ax2 = axes[1]
+    exp_names = list(results_dict.keys())
+    final_metrics = [results_dict[name][f'final_{metric}'] for name in exp_names]
+    
+    bars = ax2.bar(exp_names, final_metrics, alpha=0.7)
+    ax2.set_ylabel(f'Finale {metric.replace("_", " ").title()}', fontsize=12)
+    ax2.set_title(f'{title} - Finale Metriken', fontsize=14, fontweight='bold')
+    ax2.tick_params(axis='x', rotation=45)
+    ax2.grid(True, alpha=0.3, axis='y')
+    
+    # Werte auf Bars anzeigen
+    for bar, val in zip(bars, final_metrics):
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width()/2., height,
+                f'{val:.2f}',
+                ha='center', va='bottom', fontsize=10)
+    
+    plt.tight_layout()
+    return fig
+
+
+def plot_model_complexity_analysis(results_dict, complexity_metric='num_params'):
+    """
+    Plottet Performance vs. Modellkomplexität.
+    
+    Args:
+        results_dict: Dictionary mit Experiment-Ergebnissen
+        complexity_metric: Metrik für Komplexität ('num_params', 'num_conv_layers', etc.)
+    """
+    fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+    
+    # Komplexität extrahieren
+    complexities = []
+    val_accs = []
+    train_accs = []
+    exp_names = []
+    
+    for exp_name, results in results_dict.items():
+        if complexity_metric in results:
+            complexities.append(results[complexity_metric])
+            val_accs.append(results['final_val_acc'])
+            train_accs.append(results['final_train_acc'])
+            exp_names.append(exp_name)
+    
+    if not complexities:
+        print(f"Warnung: {complexity_metric} nicht in Ergebnissen gefunden")
+        return None
+    
+    # Sortiere nach Komplexität
+    sorted_data = sorted(zip(complexities, val_accs, train_accs, exp_names))
+    complexities, val_accs, train_accs, exp_names = zip(*sorted_data)
+    
+    # Linker Plot: Accuracy vs. Komplexität
+    ax1 = axes[0]
+    ax1.plot(complexities, train_accs, 'o-', label='Training Accuracy', linewidth=2, markersize=8)
+    ax1.plot(complexities, val_accs, 's-', label='Validation Accuracy', linewidth=2, markersize=8)
+    ax1.set_xlabel(complexity_metric.replace('_', ' ').title(), fontsize=12)
+    ax1.set_ylabel('Accuracy (%)', fontsize=12)
+    ax1.set_title('Performance vs. Modellkomplexität', fontsize=14, fontweight='bold')
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    
+    # Rechter Plot: Overfitting-Gap vs. Komplexität
+    ax2 = axes[1]
+    overfitting_gaps = [train - val for train, val in zip(train_accs, val_accs)]
+    ax2.plot(complexities, overfitting_gaps, 'o-', color='red', linewidth=2, markersize=8)
+    ax2.set_xlabel(complexity_metric.replace('_', ' ').title(), fontsize=12)
+    ax2.set_ylabel('Overfitting-Gap (Train - Val Acc) (%)', fontsize=12)
+    ax2.set_title('Overfitting vs. Modellkomplexität', fontsize=14, fontweight='bold')
+    ax2.grid(True, alpha=0.3)
+    ax2.axhline(y=0, color='black', linestyle='--', alpha=0.5)
+    
+    plt.tight_layout()
+    return fig
+
+
+def plot_training_curves_comparison(results_dict, title='Training Curves Comparison'):
+    """
+    Plottet Trainingskurven für mehrere Experimente (Loss und Accuracy).
+    
+    Args:
+        results_dict: Dictionary mit Experiment-Ergebnissen
+        title: Titel des Plots
+    """
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    
+    # Loss Curves
+    ax1 = axes[0, 0]
+    for exp_name, results in results_dict.items():
+        epochs = range(1, len(results['train_losses']) + 1)
+        ax1.plot(epochs, results['train_losses'], label=f'{exp_name} (Train)', linestyle='-', linewidth=2)
+        ax1.plot(epochs, results['val_losses'], label=f'{exp_name} (Val)', linestyle='--', linewidth=2)
+    ax1.set_xlabel('Epoche', fontsize=12)
+    ax1.set_ylabel('Loss', fontsize=12)
+    ax1.set_title('Loss Curves', fontsize=14, fontweight='bold')
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    
+    # Accuracy Curves
+    ax2 = axes[0, 1]
+    for exp_name, results in results_dict.items():
+        epochs = range(1, len(results['train_accs']) + 1)
+        ax2.plot(epochs, results['train_accs'], label=f'{exp_name} (Train)', linestyle='-', linewidth=2)
+        ax2.plot(epochs, results['val_accs'], label=f'{exp_name} (Val)', linestyle='--', linewidth=2)
+    ax2.set_xlabel('Epoche', fontsize=12)
+    ax2.set_ylabel('Accuracy (%)', fontsize=12)
+    ax2.set_title('Accuracy Curves', fontsize=14, fontweight='bold')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    
+    # F1-Score Curves
+    ax3 = axes[1, 0]
+    for exp_name, results in results_dict.items():
+        epochs = range(1, len(results['train_f1s']) + 1)
+        ax3.plot(epochs, results['train_f1s'], label=f'{exp_name} (Train)', linestyle='-', linewidth=2)
+        ax3.plot(epochs, results['val_f1s'], label=f'{exp_name} (Val)', linestyle='--', linewidth=2)
+    ax3.set_xlabel('Epoche', fontsize=12)
+    ax3.set_ylabel('F1-Score', fontsize=12)
+    ax3.set_title('F1-Score Curves', fontsize=14, fontweight='bold')
+    ax3.legend()
+    ax3.grid(True, alpha=0.3)
+    
+    # Overfitting-Gap
+    ax4 = axes[1, 1]
+    for exp_name, results in results_dict.items():
+        epochs = range(1, len(results['train_accs']) + 1)
+        gaps = [train - val for train, val in zip(results['train_accs'], results['val_accs'])]
+        ax4.plot(epochs, gaps, label=exp_name, linewidth=2)
+    ax4.set_xlabel('Epoche', fontsize=12)
+    ax4.set_ylabel('Overfitting-Gap (Train - Val Acc) (%)', fontsize=12)
+    ax4.set_title('Overfitting-Gap über Zeit', fontsize=14, fontweight='bold')
+    ax4.legend()
+    ax4.grid(True, alpha=0.3)
+    ax4.axhline(y=0, color='black', linestyle='--', alpha=0.5)
+    
+    plt.suptitle(title, fontsize=16, fontweight='bold', y=1.02)
+    plt.tight_layout()
+    return fig
