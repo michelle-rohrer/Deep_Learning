@@ -1,0 +1,26 @@
+2026-01-20 04:02:48,194 INFO    MainThread:12376 [wandb_init.py:setup_run_log_directory():705] Logging user logs to c:\Users\Michelle\Desktop\Uni\Code\Deep_Learning\wandb\run-20260120_040248-a9hf6fh8\logs\debug.log
+2026-01-20 04:02:48,194 INFO    MainThread:12376 [wandb_init.py:setup_run_log_directory():706] Logging internal logs to c:\Users\Michelle\Desktop\Uni\Code\Deep_Learning\wandb\run-20260120_040248-a9hf6fh8\logs\debug-internal.log
+2026-01-20 04:02:48,194 INFO    MainThread:12376 [wandb_init.py:monkeypatch_ipython():624] configuring jupyter hooks <wandb.sdk.wandb_init._WandbInit object at 0x000001A7F7BF38F0>
+2026-01-20 04:02:48,194 INFO    MainThread:12376 [wandb_init.py:init():832] calling init triggers
+2026-01-20 04:02:48,194 INFO    MainThread:12376 [wandb_init.py:init():837] wandb.init called with sweep_config: {}
+config: {'learning_rate': 0.01, 'batch_size': 16, 'num_epochs': 60, 'optimizer': 'SGD', 'momentum': 0, 'architecture': 'BaselineCNN', 'dataset': 'FER-2013', '_wandb': {}}
+2026-01-20 04:02:48,194 INFO    MainThread:12376 [wandb_init.py:init():880] starting backend
+2026-01-20 04:02:48,194 INFO    MainThread:12376 [wandb_init.py:init():883] sending inform_init request
+2026-01-20 04:02:48,198 INFO    MainThread:12376 [wandb_init.py:init():891] backend started and connected
+2026-01-20 04:02:48,200 INFO    MainThread:12376 [wandb_run.py:_label_probe_notebook():1330] probe notebook
+2026-01-20 04:02:48,203 INFO    MainThread:12376 [wandb_init.py:init():961] updated telemetry
+2026-01-20 04:02:48,235 INFO    MainThread:12376 [wandb_init.py:init():985] communicating run to backend with 90.0 second timeout
+2026-01-20 04:02:48,775 INFO    MainThread:12376 [wandb_init.py:init():1036] starting run threads in backend
+2026-01-20 04:02:48,871 INFO    MainThread:12376 [wandb_run.py:_console_start():2509] atexit reg
+2026-01-20 04:02:48,871 INFO    MainThread:12376 [wandb_run.py:_redirect():2357] redirect: wrap_raw
+2026-01-20 04:02:48,871 INFO    MainThread:12376 [wandb_run.py:_redirect():2426] Wrapping output streams.
+2026-01-20 04:02:48,871 INFO    MainThread:12376 [wandb_run.py:_redirect():2449] Redirects installed.
+2026-01-20 04:02:48,874 INFO    MainThread:12376 [wandb_init.py:init():1076] run started, returning control to user process
+2026-01-20 04:39:53,510 INFO    MainThread:12376 [wandb_run.py:_finish():2275] finishing run michelle-rohrer-fhnw/emotion-recognition-baseline/a9hf6fh8
+2026-01-20 04:39:53,511 INFO    MainThread:12376 [jupyter.py:save_history():480] not saving jupyter history
+2026-01-20 04:39:53,511 INFO    MainThread:12376 [jupyter.py:save_ipynb():404] not saving jupyter notebook
+2026-01-20 04:39:53,511 INFO    MainThread:12376 [wandb_init.py:_jupyter_teardown():609] cleaning up jupyter logic
+2026-01-20 04:39:53,511 INFO    MainThread:12376 [wandb_run.py:_atexit_cleanup():2474] got exitcode: 0
+2026-01-20 04:39:53,511 INFO    MainThread:12376 [wandb_run.py:_restore():2456] restore
+2026-01-20 04:39:53,511 INFO    MainThread:12376 [wandb_run.py:_restore():2462] restore done
+2026-01-20 04:39:54,742 INFO    MainThread:12376 [wandb_run.py:_footer_sync_info():3872] logging synced files

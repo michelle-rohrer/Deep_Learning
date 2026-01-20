@@ -1,5 +1,5 @@
 """
-Konfigurationsdatei für Multi-Core Optimierung auf Apple Silicon (M5)
+Konfigurationsdatei für Multi-Core Optimierung
 """
 
 import os

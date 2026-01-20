@@ -1,6 +1,0 @@
-{"time":"2026-01-19T22:35:03.872691+01:00","level":"INFO","msg":"stream: starting","core version":"0.23.1"}
-{"time":"2026-01-19T22:35:04.135494+01:00","level":"INFO","msg":"stream: created new stream","id":"z3dogrbt"}
-{"time":"2026-01-19T22:35:04.135679+01:00","level":"INFO","msg":"handler: started","stream_id":"z3dogrbt"}
-{"time":"2026-01-19T22:35:04.135703+01:00","level":"INFO","msg":"sender: started","stream_id":"z3dogrbt"}
-{"time":"2026-01-19T22:35:04.135707+01:00","level":"INFO","msg":"writer: started","stream_id":"z3dogrbt"}
-{"time":"2026-01-19T22:35:04.135779+01:00","level":"INFO","msg":"stream: started","id":"z3dogrbt"}

@@ -1,0 +1,12 @@
+{"time":"2026-01-20T05:28:27.4267258+01:00","level":"INFO","msg":"stream: starting","core version":"0.22.2"}
+{"time":"2026-01-20T05:28:27.6810568+01:00","level":"INFO","msg":"stream: created new stream","id":"lhzswhan"}
+{"time":"2026-01-20T05:28:27.6810568+01:00","level":"INFO","msg":"handler: started","stream_id":"lhzswhan"}
+{"time":"2026-01-20T05:28:27.6820871+01:00","level":"INFO","msg":"stream: started","id":"lhzswhan"}
+{"time":"2026-01-20T05:28:27.6820871+01:00","level":"INFO","msg":"writer: started","stream_id":"lhzswhan"}
+{"time":"2026-01-20T05:28:27.6820871+01:00","level":"INFO","msg":"sender: started","stream_id":"lhzswhan"}
+{"time":"2026-01-20T06:43:32.1290641+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.0037432}],"total_operations":1}}
+{"time":"2026-01-20T06:43:33.0360123+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-01-20T06:43:33.2862678+01:00","level":"INFO","msg":"stream: closing","id":"lhzswhan"}
+{"time":"2026-01-20T06:43:33.2862678+01:00","level":"INFO","msg":"handler: closed","stream_id":"lhzswhan"}
+{"time":"2026-01-20T06:43:33.2866214+01:00","level":"INFO","msg":"sender: closed","stream_id":"lhzswhan"}
+{"time":"2026-01-20T06:43:33.2866214+01:00","level":"INFO","msg":"stream: closed","id":"lhzswhan"}
