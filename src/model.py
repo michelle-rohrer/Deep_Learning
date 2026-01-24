@@ -94,20 +94,34 @@ class FlexibleCNN(nn.Module):
     - Anzahl Neuronen in FC-Layer (FC-Breite)
     - Kernel Size
     - Pooling Type
+    - Selektives Pooling (welche Layer gepoolt werden)
     """
     def __init__(self, img_size=48, num_classes=7, 
                  num_conv_layers=3, filters_per_layer=[16, 32, 64],
-                 kernel_size=3, fc_units=64, pooling_type='max'):
+                 kernel_size=3, fc_units=64, pooling_type='max',
+                 pool_after_layers=None):
+        """
+        Args:
+            pool_after_layers: Liste von Layer-Indizes (0-basiert), nach denen gepoolt werden soll.
+                              Wenn None, wird nach jedem Layer gepoolt (Standard).
+                              Beispiel: [0, 1, 2] bedeutet Pooling nach Layer 1, 2, 3.
+        """
         super(FlexibleCNN, self).__init__()
         
         self.num_conv_layers = num_conv_layers
         self.img_size = img_size
+        
+        # Standard: Pooling nach jedem Layer, wenn nicht spezifiziert
+        if pool_after_layers is None:
+            pool_after_layers = list(range(num_conv_layers))
+        self.pool_after_layers = set(pool_after_layers)
         
         # Convolutional Layers
         self.conv_layers = nn.ModuleList()
         self.pool_layers = nn.ModuleList()
         
         in_channels = 1
+        num_poolings = 0
         for i in range(num_conv_layers):
             # Filter-Anzahl: Verwende filters_per_layer[i] oder letztes Element wenn zu wenig angegeben
             out_channels = filters_per_layer[i] if i < len(filters_per_layer) else filters_per_layer[-1]
@@ -118,20 +132,25 @@ class FlexibleCNN(nn.Module):
                 nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding)
             )
             
-            # Pooling
-            if pooling_type == 'max':
-                self.pool_layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
-            elif pooling_type == 'avg':
-                self.pool_layers.append(nn.AvgPool2d(kernel_size=2, stride=2))
+            # Pooling nur wenn spezifiziert
+            if i in self.pool_after_layers:
+                if pooling_type == 'max':
+                    self.pool_layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+                elif pooling_type == 'avg':
+                    self.pool_layers.append(nn.AvgPool2d(kernel_size=2, stride=2))
+                else:
+                    raise ValueError(f"Unbekannter pooling_type: {pooling_type}")
+                num_poolings += 1
             else:
-                raise ValueError(f"Unbekannter pooling_type: {pooling_type}")
+                # Placeholder für Layer ohne Pooling
+                self.pool_layers.append(None)
             
             in_channels = out_channels
         
         # Flatten size berechnen
         # Nach jedem Pooling: img_size / 2
-        # Nach num_conv_layers Poolings: img_size / (2^num_conv_layers)
-        final_size = img_size // (2 ** num_conv_layers)
+        # Nach num_poolings Poolings: img_size / (2^num_poolings)
+        final_size = img_size // (2 ** num_poolings)
         flatten_size = in_channels * final_size * final_size
         
         # Fully Connected Layers
@@ -143,7 +162,9 @@ class FlexibleCNN(nn.Module):
         for i in range(self.num_conv_layers):
             x = self.conv_layers[i](x)
             x = F.relu(x)
-            x = self.pool_layers[i](x)
+            # Pooling nur wenn vorhanden
+            if self.pool_layers[i] is not None:
+                x = self.pool_layers[i](x)
         
         # Flatten
         x = x.view(x.size(0), -1)

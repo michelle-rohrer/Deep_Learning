@@ -155,6 +155,30 @@ def run_hyperparameter_experiment(experiment_name, model_class, model_kwargs,
     return results
 
 
+def _convert_numpy_types(obj):
+    """
+    Rekursive Funktion zur Konvertierung von NumPy-Typen zu Python-native Typen.
+    
+    Konvertiert:
+    - np.integer (int64, int32, etc.) → int
+    - np.floating (float64, float32, etc.) → float
+    - np.ndarray → list
+    - Listen und Dictionaries werden rekursiv durchlaufen
+    """
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return [_convert_numpy_types(x) for x in obj]
+    elif isinstance(obj, dict):
+        return {key: _convert_numpy_types(value) for key, value in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [_convert_numpy_types(x) for x in obj]
+    else:
+        return obj
+
+
 def save_experiment_results(results_dict, filename='results/experiments.json'):
     """
     Speichert Experiment-Ergebnisse als JSON.
@@ -165,24 +189,50 @@ def save_experiment_results(results_dict, filename='results/experiments.json'):
     """
     os.makedirs(os.path.dirname(filename) if os.path.dirname(filename) else '.', exist_ok=True)
     
-    # Konvertiere numpy arrays zu Listen für JSON
-    json_results = {}
-    for key, value in results_dict.items():
-        if isinstance(value, dict):
-            json_results[key] = {}
-            for sub_key, sub_value in value.items():
-                if isinstance(sub_value, (list, np.ndarray)):
-                    json_results[key][sub_key] = [float(x) if isinstance(x, (np.floating, float)) else x 
-                                                  for x in sub_value]
-                else:
-                    json_results[key][sub_key] = sub_value
-        elif isinstance(value, (list, np.ndarray)):
-            json_results[key] = [float(x) if isinstance(x, (np.floating, float)) else x 
-                                for x in value]
-        else:
-            json_results[key] = value
+    # Konvertiere alle NumPy-Typen zu Python-native Typen
+    json_results = _convert_numpy_types(results_dict)
     
     with open(filename, 'w') as f:
         json.dump(json_results, f, indent=2)
     
     print(f"Ergebnisse gespeichert: {filename}")
+
+
+def save_hypothesis_results(results_dict, filename):
+    """
+    Speichert Hypothesen-Ergebnisse in einer JSON-Datei.
+    
+    Args:
+        results_dict: Dictionary mit den Ergebnissen
+        filename: Pfad zur JSON-Datei
+    """
+    os.makedirs(os.path.dirname(filename) if os.path.dirname(filename) else '.', exist_ok=True)
+    save_experiment_results(results_dict, filename)
+    print(f"✓ Hypothesen-Ergebnisse gespeichert: {filename}")
+
+
+def load_hypothesis_results(filename):
+    """
+    Lädt Hypothesen-Ergebnisse aus einer JSON-Datei.
+    
+    Args:
+        filename: Pfad zur JSON-Datei
+        
+    Returns:
+        dict: Geladene Ergebnisse oder None, falls Datei nicht existiert
+    """
+    if os.path.exists(filename):
+        with open(filename, 'r') as f:
+            results = json.load(f)
+        
+        # Listen zurück in numpy arrays konvertieren (falls nötig)
+        for key, value in results.items():
+            if isinstance(value, dict):
+                for sub_key in ['train_losses', 'val_losses', 'train_accs', 'val_accs', 'train_f1s', 'val_f1s']:
+                    if sub_key in value and isinstance(value[sub_key], list):
+                        value[sub_key] = np.array(value[sub_key])
+            elif isinstance(value, list):
+                results[key] = np.array(value)
+        
+        return results
+    return None

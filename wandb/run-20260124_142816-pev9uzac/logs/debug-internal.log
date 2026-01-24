@@ -1,0 +1,12 @@
+{"time":"2026-01-24T14:28:16.3806447+01:00","level":"INFO","msg":"stream: starting","core version":"0.22.2"}
+{"time":"2026-01-24T14:28:16.6699438+01:00","level":"INFO","msg":"stream: created new stream","id":"pev9uzac"}
+{"time":"2026-01-24T14:28:16.6699438+01:00","level":"INFO","msg":"handler: started","stream_id":"pev9uzac"}
+{"time":"2026-01-24T14:28:16.6715038+01:00","level":"INFO","msg":"stream: started","id":"pev9uzac"}
+{"time":"2026-01-24T14:28:16.6715038+01:00","level":"INFO","msg":"writer: started","stream_id":"pev9uzac"}
+{"time":"2026-01-24T14:28:16.6715038+01:00","level":"INFO","msg":"sender: started","stream_id":"pev9uzac"}
+{"time":"2026-01-24T15:23:01.9697457+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.0032298}],"total_operations":1}}
+{"time":"2026-01-24T15:23:02.9657065+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-01-24T15:23:03.1793122+01:00","level":"INFO","msg":"stream: closing","id":"pev9uzac"}
+{"time":"2026-01-24T15:23:03.1793122+01:00","level":"INFO","msg":"handler: closed","stream_id":"pev9uzac"}
+{"time":"2026-01-24T15:23:03.1793122+01:00","level":"INFO","msg":"sender: closed","stream_id":"pev9uzac"}
+{"time":"2026-01-24T15:23:03.1793122+01:00","level":"INFO","msg":"stream: closed","id":"pev9uzac"}

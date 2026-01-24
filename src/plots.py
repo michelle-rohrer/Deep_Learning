@@ -539,8 +539,17 @@ def plot_experiment_comparison(results_dict, metric='val_acc', title='Experiment
     # Linker Plot: Training Curves
     ax1 = axes[0]
     for exp_name, results in results_dict.items():
-        epochs = range(1, len(results[metric]) + 1)
-        ax1.plot(epochs, results[metric], label=exp_name, linewidth=2)
+        if metric in results:
+            metric_key = metric
+        elif f"{metric}s" in results:
+            metric_key = f"{metric}s"
+        else:
+            # Falls Metrik nicht vorhanden ist, Experiment überspringen
+            print(f"Warnung: Metrik '{metric}' (oder '{metric}s') nicht in Ergebnissen für Experiment '{exp_name}' gefunden.")
+            continue
+
+        epochs = range(1, len(results[metric_key]) + 1)
+        ax1.plot(epochs, results[metric_key], label=exp_name, linewidth=2)
     
     ax1.set_xlabel('Epoche', fontsize=12)
     ax1.set_ylabel(metric.replace('_', ' ').title(), fontsize=12)

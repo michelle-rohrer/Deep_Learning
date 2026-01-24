@@ -1,0 +1,40 @@
+{
+  "os": "Windows-11-10.0.26200-SP0",
+  "python": "CPython 3.12.7",
+  "startedAt": "2026-01-23T08:51:12.814976Z",
+  "program": "c:\\Users\\Michelle\\Desktop\\Uni\\Code\\Deep_Learning\\training.ipynb",
+  "codePath": "training.ipynb",
+  "codePathLocal": "training.ipynb",
+  "git": {
+    "remote": "https://github.com/michelle-rohrer/Deep_Learning.git",
+    "commit": "212cdeb45dc598accaae7d4381359e6ab14f6d56"
+  },
+  "email": "michelle.rohrer18@gmail.com",
+  "root": "c:\\Users\\Michelle\\Desktop\\Uni\\Code\\Deep_Learning",
+  "host": "DESKTOP-MH5D02B",
+  "executable": "c:\\Users\\Michelle\\Desktop\\Uni\\Code\\Deep_Learning\\.venv\\Scripts\\python.exe",
+  "cpu_count": 6,
+  "cpu_count_logical": 12,
+  "gpu": "NVIDIA GeForce RTX 3060 Ti",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "249049280512",
+      "used": "143394353152"
+    }
+  },
+  "memory": {
+    "total": "34268979200"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 3060 Ti",
+      "memoryTotal": "8589934592",
+      "cudaCores": 4864,
+      "architecture": "Ampere",
+      "uuid": "GPU-4bdfd4f7-bf8c-169e-49be-1ad9c8ca6227"
+    }
+  ],
+  "cudaVersion": "13.1",
+  "writerId": "ul84rcgv07v3h8zf3kmalbi2izyupjip"
+}
