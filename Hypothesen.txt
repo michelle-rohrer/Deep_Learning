@@ -141,33 +141,3 @@ c) Analyse:
 Konvergenz-Geschwindigkeit
 Finale Performance
 Overfitting-Verhalten
-
-
-
-Kategorie 7: Transfer Learning
-Hypothese 11: Transfer Learning (Pre-trained)
-a) Hypothese:
-Erwartung: Pre-trained Modelle (z.B. auf ImageNet) können durch Transfer Learning bessere Performance erreichen, besonders bei kleinen Datensätzen.
-Begründung: Pre-trained Features sind generalisierbar. Referenz: Yosinski et al. (2014) "How transferable are features in deep neural networks?"
-Erwartung: Transfer Learning sollte deutlich bessere Performance zeigen, besonders bei Feature Extraction.
-b) Experiment:
-Baseline: Training from Scratch
-Varianten:
-Pre-trained ResNet18 (Feature Extraction)
-Pre-trained ResNet18 (Fine-tuning)
-c) Analyse:
-Performance-Verbesserung
-Training-Zeit
-Daten-Effizienz
-
-Hypothese 12: Kombination (Dropout + BatchNorm + Data Augmentation)
-a) Hypothese:
-Erwartung: Kombination mehrerer Regularisierungstechniken sollte Overfitting stärker reduzieren und Generalisierung verbessern.
-Begründung: Verschiedene Regularisierungstechniken wirken komplementär. Referenz: Goodfellow et al. (2016)
-Erwartung: Kombination sollte beste Generalisierung zeigen.
-b) Experiment:
-Baseline: Keine Regularisierung
-Varianten: Dropout(0.3) + BatchNorm + Data Augmentation
-c) Analyse:
-Train-Val Gap
-Finale Val-Accuracy

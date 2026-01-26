@@ -63,7 +63,7 @@ def overfitting_test_batch(model, device, train_loader, num_epochs=500):
 # Training des Modells #
 ########################
 
-def train_model(model, device, train_loader, val_loader, num_epochs=50, learning_rate=0.01, batch_size=64, use_wandb=False, run_name=None, early_stopping=True, patience=10, min_delta=0.001, save_path=None):
+def train_model(model, device, train_loader, val_loader, num_epochs=50, learning_rate=0.01, batch_size=64, use_wandb=False, run_name=None, early_stopping=True, patience=10, min_delta=0.001, save_path=None, optimizer_type='sgd', optimizer_momentum=0.0):
     """
     Training des Basismodells mit SGD (ohne Momentum), ohne Regularisierung, ohne Batchnorm.
     
@@ -105,8 +105,14 @@ def train_model(model, device, train_loader, val_loader, num_epochs=50, learning
             Listen mit Metriken pro Epoche für alle 6 Metriken
     """
     
-    # SGD Optimizer ohne Momentum
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0)
+    # Optimizer auswählen
+    if optimizer_type.lower() == 'sgd':
+        optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=optimizer_momentum)
+    elif optimizer_type.lower() == 'adam':
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    else:
+        raise ValueError(f"Unbekannter optimizer_type: {optimizer_type}. Unterstützt: 'sgd', 'adam'")
+    
     criterion = nn.CrossEntropyLoss()
     
     # wandb initialisieren falls gewünscht

@@ -99,7 +99,8 @@ class FlexibleCNN(nn.Module):
     def __init__(self, img_size=48, num_classes=7, 
                  num_conv_layers=3, filters_per_layer=[16, 32, 64],
                  kernel_size=3, fc_units=64, pooling_type='max',
-                 pool_after_layers=None):
+                 pool_after_layers=None, dropout_rate=0.0, use_batchnorm=False,
+                 init_type='default'):
         """
         Args:
             pool_after_layers: Liste von Layer-Indizes (0-basiert), nach denen gepoolt werden soll.
@@ -119,6 +120,8 @@ class FlexibleCNN(nn.Module):
         # Convolutional Layers
         self.conv_layers = nn.ModuleList()
         self.pool_layers = nn.ModuleList()
+        self.bn_layers = nn.ModuleList()
+        self.dropout_conv = nn.ModuleList()
         
         in_channels = 1
         num_poolings = 0
@@ -132,15 +135,32 @@ class FlexibleCNN(nn.Module):
                 nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding)
             )
             
+            # BatchNorm nach Conv-Layer (falls aktiviert)
+            if use_batchnorm:
+                self.bn_layers.append(nn.BatchNorm2d(out_channels))
+            else:
+                self.bn_layers.append(None)
+            
+            # Dropout nach Conv-Layer (falls aktiviert)
+            if dropout_rate > 0:
+                self.dropout_conv.append(nn.Dropout2d(dropout_rate))
+            else:
+                self.dropout_conv.append(None)
+            
             # Pooling nur wenn spezifiziert
             if i in self.pool_after_layers:
                 if pooling_type == 'max':
                     self.pool_layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+                    num_poolings += 1
                 elif pooling_type == 'avg':
                     self.pool_layers.append(nn.AvgPool2d(kernel_size=2, stride=2))
+                    num_poolings += 1
+                elif pooling_type == 'adaptive':
+                    # AdaptiveAvgPool2d wird am Ende angewendet, nicht nach jedem Layer
+                    # Kein Pooling hier, nur am Ende
+                    self.pool_layers.append(None)
                 else:
                     raise ValueError(f"Unbekannter pooling_type: {pooling_type}")
-                num_poolings += 1
             else:
                 # Placeholder für Layer ohne Pooling
                 self.pool_layers.append(None)
@@ -150,21 +170,53 @@ class FlexibleCNN(nn.Module):
         # Flatten size berechnen
         # Nach jedem Pooling: img_size / 2
         # Nach num_poolings Poolings: img_size / (2^num_poolings)
-        final_size = img_size // (2 ** num_poolings)
-        flatten_size = in_channels * final_size * final_size
+        # Für Adaptive Pooling: finale Größe ist fest (z.B. 6x6)
+        if pooling_type == 'adaptive':
+            # AdaptiveAvgPool2d reduziert auf feste Größe (z.B. 6x6)
+            # Wir verwenden 6x6 als Standard für Adaptive Pooling
+            self.adaptive_pool = nn.AdaptiveAvgPool2d((6, 6))
+            flatten_size = in_channels * 6 * 6
+        else:
+            self.adaptive_pool = None
+            final_size = img_size // (2 ** num_poolings)
+            flatten_size = in_channels * final_size * final_size
         
         # Fully Connected Layers
         self.fc1 = nn.Linear(flatten_size, fc_units)
         self.fc2 = nn.Linear(fc_units, num_classes)
+        
+        # Dropout für FC-Layer
+        self.dropout_fc = nn.Dropout(dropout_rate) if dropout_rate > 0 else None
+        
+        # Pooling Type speichern
+        self.pooling_type = pooling_type
+        self.init_type = init_type
+        
+        # Gewichts-Initialisierung
+        self._initialize_weights(init_type)
     
     def forward(self, x):
         # Convolutional Blocks
         for i in range(self.num_conv_layers):
             x = self.conv_layers[i](x)
+            
+            # BatchNorm nach Conv (falls aktiviert)
+            if self.bn_layers[i] is not None:
+                x = self.bn_layers[i](x)
+            
             x = F.relu(x)
+            
+            # Dropout nach Conv (falls aktiviert)
+            if self.dropout_conv[i] is not None:
+                x = self.dropout_conv[i](x)
+            
             # Pooling nur wenn vorhanden
             if self.pool_layers[i] is not None:
                 x = self.pool_layers[i](x)
+        
+        # Adaptive Pooling am Ende (falls aktiviert)
+        if self.pooling_type == 'adaptive' and self.adaptive_pool is not None:
+            x = self.adaptive_pool(x)
         
         # Flatten
         x = x.view(x.size(0), -1)
@@ -172,9 +224,49 @@ class FlexibleCNN(nn.Module):
         # Fully Connected
         x = self.fc1(x)
         x = F.relu(x)
+        
+        # Dropout vor letztem FC-Layer (falls aktiviert)
+        if self.dropout_fc is not None:
+            x = self.dropout_fc(x)
+        
         x = self.fc2(x)
         
         return x
+    
+    def _initialize_weights(self, init_type='default'):
+        """
+        Initialisiert die Gewichte des Modells.
+        
+        Args:
+            init_type: 'default' (PyTorch default), 'he' (Kaiming/He), 'xavier' (Glorot/Xavier), 'small' (kleine zufällige Werte)
+        """
+        if init_type == 'default':
+            # PyTorch default (bereits Kaiming für Conv, normal für Linear)
+            return
+        elif init_type == 'he':
+            # He/Kaiming Initialization für ReLU
+            for m in self.modules():
+                if isinstance(m, nn.Conv2d):
+                    nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.Linear):
+                    nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                    nn.init.constant_(m.bias, 0)
+        elif init_type == 'xavier':
+            # Xavier/Glorot Initialization
+            for m in self.modules():
+                if isinstance(m, (nn.Conv2d, nn.Linear)):
+                    nn.init.xavier_normal_(m.weight)
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
+        elif init_type == 'small':
+            # Kleine zufällige Werte
+            for m in self.modules():
+                if isinstance(m, (nn.Conv2d, nn.Linear)):
+                    nn.init.normal_(m.weight, mean=0, std=0.01)
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
 
 
 #############################

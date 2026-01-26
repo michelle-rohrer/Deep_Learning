@@ -13,7 +13,9 @@ def run_hyperparameter_experiment(experiment_name, model_class, model_kwargs,
                                  train_loader, val_loader, test_loader=None,
                                  num_epochs=60, learning_rate=0.01, 
                                  batch_size=64, device=None, use_wandb=True,
-                                 save_model=False, save_dir='models/experiments'):
+                                 save_model=False, save_dir='models/experiments',
+                                 optimizer_type='sgd', optimizer_momentum=0.0,
+                                 early_stopping=False):
     """
     Führt ein Hyperparameter-Experiment durch.
     
@@ -31,6 +33,9 @@ def run_hyperparameter_experiment(experiment_name, model_class, model_kwargs,
         use_wandb: Ob wandb logging aktiviert werden soll
         save_model: Ob Modell gespeichert werden soll
         save_dir: Verzeichnis zum Speichern
+        optimizer_type: Typ des Optimizers ('sgd' oder 'adam')
+        optimizer_momentum: Momentum für SGD (nur bei optimizer_type='sgd')
+        early_stopping: Ob Early Stopping aktiviert werden soll (Standard: False für fairen Vergleich)
     
     Returns:
         dict: Ergebnisse mit allen Metriken
@@ -67,9 +72,11 @@ def run_hyperparameter_experiment(experiment_name, model_class, model_kwargs,
         batch_size=batch_size,
         use_wandb=use_wandb,
         run_name=experiment_name,
-        early_stopping=True,
+        early_stopping=early_stopping,  # Wird als Parameter übergeben (Standard: False für fairen Vergleich)
         patience=15,
-        min_delta=0.001
+        min_delta=0.001,
+        optimizer_type=optimizer_type,
+        optimizer_momentum=optimizer_momentum
     )
     
     # Beste Performance finden
