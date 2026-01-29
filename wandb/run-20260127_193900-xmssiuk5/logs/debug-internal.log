@@ -1,0 +1,17 @@
+{"time":"2026-01-27T19:39:00.0961978+01:00","level":"INFO","msg":"stream: starting","core version":"0.22.2"}
+{"time":"2026-01-27T19:39:00.3591935+01:00","level":"INFO","msg":"stream: created new stream","id":"xmssiuk5"}
+{"time":"2026-01-27T19:39:00.3591935+01:00","level":"INFO","msg":"handler: started","stream_id":"xmssiuk5"}
+{"time":"2026-01-27T19:39:00.3612603+01:00","level":"INFO","msg":"stream: started","id":"xmssiuk5"}
+{"time":"2026-01-27T19:39:00.3612603+01:00","level":"INFO","msg":"sender: started","stream_id":"xmssiuk5"}
+{"time":"2026-01-27T19:39:00.3612603+01:00","level":"INFO","msg":"writer: started","stream_id":"xmssiuk5"}
+{"time":"2026-01-27T20:18:01.4860313+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": context deadline exceeded"}
+{"time":"2026-01-27T20:32:01.7399621+01:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": net/http: request canceled (Client.Timeout exceeded while awaiting headers)"}
+{"time":"2026-01-27T20:37:16.2249818+01:00","level":"ERROR","msg":"sender: failed to upload run summary: open c:\\Users\\Michelle\\Desktop\\Uni\\Code\\Deep_Learning\\wandb\\run-20260127_193900-xmssiuk5\\files\\wandb-summary.json: The system cannot find the path specified."}
+{"time":"2026-01-27T20:37:16.2260091+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.0027889}],"total_operations":1}}
+{"time":"2026-01-27T20:37:16.2747012+01:00","level":"WARN","msg":"runfiles: upload: file does not exist","path":"c:\\Users\\Michelle\\Desktop\\Uni\\Code\\Deep_Learning\\wandb\\run-20260127_193900-xmssiuk5\\files\\output.log"}
+{"time":"2026-01-27T20:37:16.4649512+01:00","level":"ERROR","msg":"sender: failed to upload run config: open c:\\Users\\Michelle\\Desktop\\Uni\\Code\\Deep_Learning\\wandb\\run-20260127_193900-xmssiuk5\\files\\config.yaml: The system cannot find the path specified."}
+{"time":"2026-01-27T20:37:16.5153245+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-01-27T20:37:16.783353+01:00","level":"INFO","msg":"stream: closing","id":"xmssiuk5"}
+{"time":"2026-01-27T20:37:16.783353+01:00","level":"INFO","msg":"handler: closed","stream_id":"xmssiuk5"}
+{"time":"2026-01-27T20:37:16.783353+01:00","level":"INFO","msg":"sender: closed","stream_id":"xmssiuk5"}
+{"time":"2026-01-27T20:37:16.783353+01:00","level":"INFO","msg":"stream: closed","id":"xmssiuk5"}

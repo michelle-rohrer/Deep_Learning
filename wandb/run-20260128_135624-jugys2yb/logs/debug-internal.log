@@ -1,0 +1,12 @@
+{"time":"2026-01-28T13:56:24.0080541+01:00","level":"INFO","msg":"stream: starting","core version":"0.22.2"}
+{"time":"2026-01-28T13:56:24.2686151+01:00","level":"INFO","msg":"stream: created new stream","id":"jugys2yb"}
+{"time":"2026-01-28T13:56:24.2691481+01:00","level":"INFO","msg":"handler: started","stream_id":"jugys2yb"}
+{"time":"2026-01-28T13:56:24.2703919+01:00","level":"INFO","msg":"stream: started","id":"jugys2yb"}
+{"time":"2026-01-28T13:56:24.2703919+01:00","level":"INFO","msg":"sender: started","stream_id":"jugys2yb"}
+{"time":"2026-01-28T13:56:24.2703919+01:00","level":"INFO","msg":"writer: started","stream_id":"jugys2yb"}
+{"time":"2026-01-28T15:11:11.9208549+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.0027427}],"total_operations":1}}
+{"time":"2026-01-28T15:11:12.5163718+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-01-28T15:11:12.7482606+01:00","level":"INFO","msg":"stream: closing","id":"jugys2yb"}
+{"time":"2026-01-28T15:11:12.7482606+01:00","level":"INFO","msg":"handler: closed","stream_id":"jugys2yb"}
+{"time":"2026-01-28T15:11:12.7482606+01:00","level":"INFO","msg":"sender: closed","stream_id":"jugys2yb"}
+{"time":"2026-01-28T15:11:12.7482606+01:00","level":"INFO","msg":"stream: closed","id":"jugys2yb"}
