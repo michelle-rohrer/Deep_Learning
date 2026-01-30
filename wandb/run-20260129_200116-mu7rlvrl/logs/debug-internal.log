@@ -1,0 +1,13 @@
+{"time":"2026-01-29T20:01:19.3005605+01:00","level":"INFO","msg":"stream: starting","core version":"0.22.2"}
+{"time":"2026-01-29T20:01:19.5981136+01:00","level":"INFO","msg":"stream: created new stream","id":"mu7rlvrl"}
+{"time":"2026-01-29T20:01:19.5981136+01:00","level":"INFO","msg":"handler: started","stream_id":"mu7rlvrl"}
+{"time":"2026-01-29T20:01:19.6057554+01:00","level":"INFO","msg":"stream: started","id":"mu7rlvrl"}
+{"time":"2026-01-29T20:01:19.6057554+01:00","level":"INFO","msg":"writer: started","stream_id":"mu7rlvrl"}
+{"time":"2026-01-29T20:01:19.6057554+01:00","level":"INFO","msg":"sender: started","stream_id":"mu7rlvrl"}
+{"time":"2026-01-29T20:09:20.6833718+01:00","level":"INFO","msg":"api: retrying HTTP error","status":502,"url":"https://api.wandb.ai/files/michelle-rohrer-fhnw/emotion-recognition-baseline/mu7rlvrl/file_stream","body":"\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>502 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered a temporary error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"}
+{"time":"2026-01-29T21:16:29.0189198+01:00","level":"INFO","msg":"handler: operation stats","stats":{"operations":[{"desc":"updating run metadata","runtime_seconds":0.5089167}],"total_operations":1}}
+{"time":"2026-01-29T21:16:29.6378209+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-01-29T21:16:29.883725+01:00","level":"INFO","msg":"stream: closing","id":"mu7rlvrl"}
+{"time":"2026-01-29T21:16:29.883725+01:00","level":"INFO","msg":"handler: closed","stream_id":"mu7rlvrl"}
+{"time":"2026-01-29T21:16:29.883725+01:00","level":"INFO","msg":"sender: closed","stream_id":"mu7rlvrl"}
+{"time":"2026-01-29T21:16:29.883725+01:00","level":"INFO","msg":"stream: closed","id":"mu7rlvrl"}

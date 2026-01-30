@@ -1,0 +1,1 @@
+{"val_acc":51.91570881226053,"train_acc":62.959898985500935,"train_f1":0.6170583345349081,"best_val_loss":Infinity,"_wandb":{"runtime":4509},"_runtime":4509,"val_f1":0.49796747427509014,"_timestamp":1.7697177885088394e+09,"epoch":60,"train_loss":0.9510505980601882,"patience_counter":0,"_step":59,"val_loss":1.376864078309801}
